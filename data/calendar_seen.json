@@ -1,0 +1,108 @@
+{
+  "dispatched": {
+    "calendar:141zhij5kq6blblxkig1nzuayandex.ru": {
+      "dispatched_at": "2026-07-08T10:55:09.461773+00:00",
+      "title": "Проверка модификации",
+      "meeting_url": "https://telemost.yandex.ru/j/8432796058",
+      "starts_at": "2026-07-08T14:57:00+04:00",
+      "result": {
+        "node_id": "telemost-vm-1",
+        "task_id": "meeting-2",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-1"
+      }
+    },
+    "calendar:141zhipmfr53k25mloq44jq61yandex.ru": {
+      "dispatched_at": "2026-07-08T11:11:24.432513+00:00",
+      "title": "Очередной тест",
+      "meeting_url": "https://telemost.yandex.ru/j/2082355709",
+      "starts_at": "2026-07-08T15:13:00+04:00",
+      "result": {
+        "node_id": "telemost-vm-1",
+        "task_id": "meeting-3",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-2"
+      }
+    },
+    "calendar:141zhipmfr53k25npmh61oy5syandex.ru": {
+      "dispatched_at": "2026-07-08T11:14:27.744934+00:00",
+      "title": "Снова тест",
+      "meeting_url": "https://telemost.yandex.ru/j/5381307009",
+      "starts_at": "2026-07-08T15:15:00+04:00",
+      "result": {
+        "node_id": "telemost-vm-1",
+        "task_id": "meeting-4",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-3"
+      }
+    },
+    "calendar:141zhipmfr53k268r4ro5dt8iyandex.ru": {
+      "dispatched_at": "2026-07-08T12:13:13.410448+00:00",
+      "title": "Без названия",
+      "meeting_url": "https://telemost.yandex.ru/j/0979087968",
+      "starts_at": "2026-07-08T16:14:00+04:00",
+      "result": {
+        "node_id": "telemost-vm-1",
+        "task_id": "meeting-5",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-1"
+      }
+    },
+    "calendar:141zhipmfr53k3vfvh49ggsryandex.ru": {
+      "dispatched_at": "2026-07-12T19:01:54.385862+00:00",
+      "title": "Тест обновленного бота",
+      "meeting_url": "https://telemost.yandex.ru/j/0232049936",
+      "starts_at": "2026-07-12T23:02:00+04:00",
+      "result": {
+        "node_id": "telemost-vm-1",
+        "task_id": "meeting-4",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-2"
+      }
+    },
+    "calendar:141zhipmfr53k3vphujf2ksfayandex.ru": {
+      "dispatched_at": "2026-07-12T19:29:02.006012+00:00",
+      "title": "Новый тест обновленного бота",
+      "meeting_url": "https://telemost.yandex.ru/j/8862613631",
+      "starts_at": "2026-07-12T23:30:00+04:00",
+      "result": {
+        "node_id": "telemost-vm-1",
+        "task_id": "meeting-5",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-3"
+      }
+    },
+    "calendar:141zhipmfr53k4h2nl8u4v6bzyandex.ru": {
+      "dispatched_at": "2026-07-14T07:29:07.744035+00:00",
+      "title": "Обсуждение дальнейших модификаций бота",
+      "meeting_url": "https://telemost.yandex.ru/j/6880915341",
+      "starts_at": "2026-07-14T11:30:00+04:00",
+      "result": {
+        "node_id": "telemost-vm-1",
+        "task_id": "meeting-2",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-5"
+      }
+    },
+    "calendar:141zhipmfr53k4h6xqov8hnbyandex.ru": {
+      "dispatched_at": "2026-07-14T07:59:34.397618+00:00",
+      "title": "тест",
+      "meeting_url": "https://telemost.yandex.ru/j/9489025124",
+      "starts_at": "2026-07-14T12:00:00+04:00",
+      "result": {
+        "node_id": "telemost-vm-1",
+        "task_id": "meeting-3",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-6"
+      }
+    }
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "dispatched": {
+    "calendar:141zhio16972fga0uu06we5iyandex.ru:2026-08-06T14:30:00+05:00": {
+      "event_id": "calendar:141zhio16972fga0uu06we5iyandex.ru:2026-08-06T14:30:00+05:00",
+      "status": "dispatched",
+      "title": "РГ Продажи, IT",
+      "meeting_url": "https://telemost.yandex.ru/j/0650005366",
+      "starts_at": "2026-08-06T14:30:00+05:00",
+      "ends_at": "2026-08-06T15:30:00+05:00",
+      "calendar_source": "Мои события",
+      "last_attempt_at": "2026-08-06T09:29:10.524519+00:00",
+      "attempts": 1,
+      "error": null,
+      "dispatched_at": "2026-08-06T09:29:11.187777+00:00",
+      "result": {
+        "node_id": "telemost-vm-1-bot-1",
+        "task_id": "meeting-6",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-22"
+      },
+      "node_id": "telemost-vm-1-bot-1",
+      "bot_id": "test-bot-1",
+      "task_id": "meeting-6"
+    },
+    "calendar:141zhilprg34l9ci8knfb7jcyandex.ru:2026-08-06T15:40:00+04:00": {
+      "event_id": "calendar:141zhilprg34l9ci8knfb7jcyandex.ru:2026-08-06T15:40:00+04:00",
+      "status": "dispatched",
+      "title": "Коммерческий комитет",
+      "meeting_url": "https://telemost.yandex.ru/j/5301576382",
+      "starts_at": "2026-08-06T15:40:00+04:00",
+      "ends_at": "2026-08-06T16:40:00+04:00",
+      "calendar_source": "Мои события",
+      "last_attempt_at": "2026-08-06T11:39:00.121401+00:00",
+      "attempts": 1,
+      "error": null,
+      "dispatched_at": "2026-08-06T11:39:00.717902+00:00",
+      "result": {
+        "node_id": "telemost-vm-1-bot-1",
+        "task_id": "meeting-8",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-23"
+      },
+      "node_id": "telemost-vm-1-bot-1",
+      "bot_id": "test-bot-1",
+      "task_id": "meeting-8"
+    },
+    "calendar:141zhilprg34mbs89i5p4kkxryandex.ru:2026-08-06T16:45:00+04:00": {
+      "event_id": "calendar:141zhilprg34mbs89i5p4kkxryandex.ru:2026-08-06T16:45:00+04:00",
+      "status": "dispatched",
+      "title": "Финштаб",
+      "meeting_url": "https://telemost.yandex.ru/j/3693780580",
+      "starts_at": "2026-08-06T16:45:00+04:00",
+      "ends_at": "2026-08-06T17:45:00+04:00",
+      "calendar_source": "Мои события",
+      "last_attempt_at": "2026-08-06T12:44:08.023672+00:00",
+      "attempts": 1,
+      "error": null,
+      "dispatched_at": "2026-08-06T12:44:08.522774+00:00",
+      "result": {
+        "node_id": "telemost-vm-1-bot-2",
+        "task_id": "meeting-8",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-4"
+      },
+      "node_id": "telemost-vm-1-bot-2",
+      "bot_id": "test-bot-1",
+      "task_id": "meeting-8"
+    },
+    "calendar:141zhilprg34mbs89i5p4kkxryandex.ru:2026-08-06T17:00:00+04:00": {
+      "event_id": "calendar:141zhilprg34mbs89i5p4kkxryandex.ru:2026-08-06T17:00:00+04:00",
+      "status": "dispatched",
+      "title": "Финштаб",
+      "meeting_url": "https://telemost.yandex.ru/j/3693780580",
+      "starts_at": "2026-08-06T17:00:00+04:00",
+      "ends_at": "2026-08-06T18:00:00+04:00",
+      "calendar_source": "Мои события",
+      "last_attempt_at": "2026-08-06T12:59:03.426106+00:00",
+      "attempts": 1,
+      "error": null,
+      "dispatched_at": "2026-08-06T12:59:03.998349+00:00",
+      "result": {
+        "node_id": "telemost-vm-1-bot-3",
+        "task_id": "meeting-8",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-1"
+      },
+      "node_id": "telemost-vm-1-bot-3",
+      "bot_id": "test-bot-1",
+      "task_id": "meeting-8"
+    },
+    "calendar:141zhie02181vqbw1osy4uxmryandex.ru:2026-08-07T09:30:00+04:00": {
+      "event_id": "calendar:141zhie02181vqbw1osy4uxmryandex.ru:2026-08-07T09:30:00+04:00",
+      "status": "dispatched",
+      "title": "Daily Meetnig",
+      "meeting_url": "https://telemost.yandex.ru/j/2060121644",
+      "starts_at": "2026-08-07T09:30:00+04:00",
+      "ends_at": "2026-08-07T09:45:00+04:00",
+      "calendar_source": "Мои события",
+      "last_attempt_at": "2026-08-07T05:29:08.121775+00:00",
+      "attempts": 1,
+      "error": null,
+      "dispatched_at": "2026-08-07T05:29:08.643086+00:00",
+      "result": {
+        "node_id": "telemost-vm-1-bot-1",
+        "task_id": "meeting-1",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-24"
+      },
+      "node_id": "telemost-vm-1-bot-1",
+      "bot_id": "test-bot-1",
+      "task_id": "meeting-1"
+    },
+    "calendar:141zhiocft15rv05ebvp4q4yyandex.ru:2026-08-07T11:00:00+05:00": {
+      "event_id": "calendar:141zhiocft15rv05ebvp4q4yyandex.ru:2026-08-07T11:00:00+05:00",
+      "status": "dispatched",
+      "title": "РГ_Продукт х Аналитика",
+      "meeting_url": "https://telemost.yandex.ru/j/4161946767",
+      "starts_at": "2026-08-07T11:00:00+05:00",
+      "ends_at": "2026-08-07T12:00:00+05:00",
+      "calendar_source": "Мои события",
+      "last_attempt_at": "2026-08-07T05:59:10.277474+00:00",
+      "attempts": 1,
+      "error": null,
+      "dispatched_at": "2026-08-07T05:59:10.791661+00:00",
+      "result": {
+        "node_id": "telemost-vm-1-bot-1",
+        "task_id": "meeting-2",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-25"
+      },
+      "node_id": "telemost-vm-1-bot-1",
+      "bot_id": "test-bot-1",
+      "task_id": "meeting-2"
+    },
+    "calendar:141zhiocft15rv051s3z3tq03yandex.ru:2026-08-07T12:00:00+05:00": {
+      "event_id": "calendar:141zhiocft15rv051s3z3tq03yandex.ru:2026-08-07T12:00:00+05:00",
+      "status": "dispatched",
+      "title": "РГ_Стандарты",
+      "meeting_url": "https://telemost.yandex.ru/j/6451441722",
+      "starts_at": "2026-08-07T12:00:00+05:00",
+      "ends_at": "2026-08-07T13:00:00+05:00",
+      "calendar_source": "Мои события",
+      "last_attempt_at": "2026-08-07T06:59:05.425211+00:00",
+      "attempts": 1,
+      "error": null,
+      "dispatched_at": "2026-08-07T06:59:05.827242+00:00",
+      "result": {
+        "node_id": "telemost-vm-1-bot-1",
+        "task_id": "meeting-3",
+        "status": "queued",
+        "bot_id": "test-bot-1",
+        "queue_message_id": "msg-26"
+      },
+      "node_id": "telemost-vm-1-bot-1",
+      "bot_id": "test-bot-1",
+      "task_id": "meeting-3"
+    }
+  }
+}

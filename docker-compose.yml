@@ -1,0 +1,14 @@
+services:
+  telemost-control-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telemost-control-service
+    restart: unless-stopped
+    network_mode: host
+    user: "1001:1001"
+    env_file:
+      - .env
+    volumes:
+      - ./config:/app/config:ro
+      - ./data:/app/data

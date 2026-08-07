@@ -1,0 +1,20 @@
+[
+  {
+    "id": "telemost-vm-1",
+    "name": "Основная VM",
+    "base_url": "http://127.0.0.1:8000",
+    "token": ""
+  },
+  {
+    "id": "telemost-vm-2",
+    "name": "Вторая VM",
+    "base_url": "http://192.168.101.36:8000",
+    "token": ""
+  },
+  {
+    "id": "telemost-vm-3",
+    "name": "Третья VM",
+    "base_url": "http://192.168.101.31:8000",
+    "token": ""
+  }
+]
