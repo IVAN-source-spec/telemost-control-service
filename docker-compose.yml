@@ -6,7 +6,7 @@ services:
     container_name: telemost-control-service
     restart: unless-stopped
     network_mode: host
-    user: "1001:1001"
+    user: "1002:1002"
     env_file:
       - .env
     volumes:

@@ -66,6 +66,8 @@ DASHBOARD_HTML = """
     .bad { color: #b42318; font-weight: 760; }
     .calendar-control-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
     .message { min-height: 20px; margin-top: 8px; font-size: 14px; }
+    .agenda-box { margin-top: 10px; padding: 10px; border: 1px solid #e4e8ee; border-radius: 8px; background: #f8fafc; }
+    .agenda-form { display: grid; gap: 8px; margin-top: 8px; }
     .error { color: #b42318; }
     @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .sidebar { position: static; } .nav { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 760px) { header { display: block; } .summary, .quick-grid, .quick-extra-grid, .calendar-summary, .calendar-control-grid { grid-template-columns: 1fr; } .calendar-head, .calendar-actions { display: block; } .calendar-actions input, .calendar-actions button { margin-top: 8px; width: 100%; } .nav { grid-template-columns: 1fr; } }
@@ -218,6 +220,24 @@ function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function agendaInfo(bot) {
+  const agenda = bot.agenda_status || {};
+  const active = Boolean(agenda.agenda_active || agenda.enabled && agenda.status === "active");
+  if (bot.status === "idle") {
+    return { active: false, text: "Повестка не требуется", css: "muted" };
+  }
+  if (active) {
+    const source = agenda.source ? `, источник: ${agenda.source}` : "";
+    const count = agenda.items_count || agenda.total || 0;
+    return { active: true, text: `Повестка активна: ${count} пункт(ов)${source}`, css: "ok" };
+  }
+  return { active: false, text: "Повестка отсутствует", css: "warn" };
+}
+
+function agendaEditingActive() {
+  return document.activeElement?.closest?.(".agenda-form");
+}
+
 function render(data) {
   document.getElementById("nodes-total").textContent = data.summary.nodes_total;
   document.getElementById("bots-total").textContent = data.summary.bots_total;
@@ -236,7 +256,9 @@ function render(data) {
         <div class="badge ${node.status === "online" ? "" : "busy"}">${esc(node.status)}</div>
       </div>
       <div class="bots">
-        ${(node.bots || []).map(bot => `
+        ${(node.bots || []).map(bot => {
+          const agenda = agendaInfo(bot);
+          return `
           <div class="bot ${bot.status}">
             <strong>${esc(bot.global_bot_id || bot.bot_id)}</strong>
             <span class="badge ${bot.status}">${esc(bot.status)}</span>
@@ -244,7 +266,19 @@ function render(data) {
               <span class="muted">Встреча</span><span>${esc(bot.title || bot.session_id || "-")}</span>
               <span class="muted">Ссылка</span><span>${esc(bot.meeting_url || "-")}</span>
               <span class="muted">Старт</span><span>${esc(bot.started_at || "-")}</span>
+              <span class="muted">Повестка</span><span class="${agenda.css}">${esc(agenda.text)}</span>
             </div>
+            ${bot.status !== "idle" ? `
+              <div class="agenda-box">
+                ${agenda.active ? `<div class="muted">Новая повестка через дашборд не принимается: первая корректная повестка уже зафиксирована.</div>` : `
+                  <form class="agenda-form" data-node-id="${esc(node.node_id)}" data-bot-id="${esc(bot.bot_id)}">
+                    <textarea name="raw_agenda" placeholder="Добавить повестку: ###Повестка: #1. Вопрос - 10:00 #2. Следующий вопрос###"></textarea>
+                    <button type="submit">Добавить повестку</button>
+                    <div class="agenda-message message"></div>
+                  </form>
+                `}
+              </div>
+            ` : ""}
             ${bot.status === "idle" ? `
               <form class="bot-form" data-node-id="${esc(node.node_id)}" data-bot-id="${esc(bot.bot_id)}">
                 <div class="row" style="grid-template-columns:1fr; margin-top:10px;">
@@ -257,8 +291,8 @@ function render(data) {
                 </div>
               </form>
             ` : ""}
-          </div>
-        `).join("")}
+          </div>`;
+        }).join("")}
       </div>
     </article>
   `).join("");
@@ -266,9 +300,13 @@ function render(data) {
   for (const form of document.querySelectorAll(".bot-form")) {
     form.addEventListener("submit", submitSpecific);
   }
+  for (const form of document.querySelectorAll(".agenda-form")) {
+    form.addEventListener("submit", submitAgenda);
+  }
 }
 
-async function refresh() {
+async function refresh(force = false) {
+  if (!force && agendaEditingActive()) return;
   try {
     const resp = await fetch("/api/v1/nodes/status", { cache: "no-store" });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -453,6 +491,48 @@ async function submitQuick(event) {
   } catch (e) {
     quickMessage.className = "message error";
     quickMessage.textContent = e.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function submitAgenda(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const message = form.querySelector(".agenda-message");
+  const button = form.querySelector("button");
+  const rawAgenda = String(new FormData(form).get("raw_agenda") || "").trim();
+  if (!rawAgenda) {
+    message.className = "agenda-message error";
+    message.textContent = "Укажите повестку.";
+    return;
+  }
+  button.disabled = true;
+  message.className = "agenda-message";
+  message.textContent = "Передаю повестку...";
+  try {
+    const resp = await fetch(`/api/v1/nodes/${encodeURIComponent(form.dataset.nodeId)}/bots/${encodeURIComponent(form.dataset.botId)}/agenda/activate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ raw_agenda: rawAgenda, source: "control_dashboard" })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.detail || `HTTP ${resp.status}`);
+    if (data.status === "already_active") {
+      message.className = "agenda-message warn";
+      message.textContent = `Повестка уже принята, источник: ${data.source || "unknown"}.`;
+    } else if (data.status === "agenda_activated") {
+      message.className = "agenda-message ok";
+      message.textContent = `Повестка принята: ${data.items_count || 0} пункт(ов).`;
+      form.reset();
+    } else {
+      message.className = "agenda-message error";
+      message.textContent = data.error || data.status || "Не удалось передать повестку.";
+    }
+    await refresh(true);
+  } catch (e) {
+    message.className = "agenda-message error";
+    message.textContent = e.message;
   } finally {
     button.disabled = false;
   }

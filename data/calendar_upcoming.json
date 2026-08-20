@@ -1,26 +1,26 @@
 {
-  "generated_at": "2026-08-07T09:13:03.010314+00:00",
+  "generated_at": "2026-08-20T07:36:53.031258+00:00",
   "range": {
-    "start": "2026-08-07T09:13:03.010314+00:00",
-    "end": "2026-08-07T11:13:03.010314+00:00"
+    "start": "2026-08-20T07:36:53.031258+00:00",
+    "end": "2026-08-20T09:36:53.031258+00:00"
   },
   "summary": {
-    "events_total": 1,
-    "events_with_telemost": 1,
+    "events_total": 2,
+    "events_with_telemost": 2,
     "due": 0,
     "dispatched": 0,
     "failed": 0
   },
   "events": [
     {
-      "event_id": "calendar:141zhiocft15rv04apbb2gxdeyandex.ru:2026-08-07T15:00:00+05:00",
-      "title": "РГ_Отдел продукта",
-      "description": "Ссылка на видеовстречу: https://telemost.yandex.ru/j/2001247896\nПозвонить с телефона: +7 ​495 ​363-​15-​52, доб. 2001 ​2478 ​96#",
+      "event_id": "calendar:141zhifdhe34gwj6eso6hyyiyandex.ru:2026-08-20T12:00:00+04:00",
+      "title": "Тендерный комитет Астрахань",
+      "description": "Ссылка на видеовстречу: https://telemost.yandex.ru/j/8842500972\n\n\n\nПовестка:\n\n1) Удорожание стоимости оператора БК, все проекты;\n2) Доп соглашение Адекват НВК, Боевая 1,2,3;\n3) Благоустройство Боевая 1-3(вдоль домов);\n4) Финишная отделка ЛК, Зеленые кварталы 1.1;\n5) Монтаж ПП дверей, Зеленые кварталы 1.1;\n6) Устройство фасада, Зеленые кварталы 1.2 1-6 секции;\n7) Благоустройство (мягкие покрытия), Боевая 2,3;\n8) Доп. работы по монтажу системы СПЗ, Гагарин 2",
       "agenda": "",
       "has_agenda": false,
-      "meeting_url": "https://telemost.yandex.ru/j/2001247896",
-      "starts_at": "2026-08-07T15:00:00+05:00",
-      "ends_at": "2026-08-07T16:00:00+05:00",
+      "meeting_url": "https://telemost.yandex.ru/j/8842500972",
+      "starts_at": "2026-08-20T12:00:00+04:00",
+      "ends_at": "2026-08-20T13:00:00+04:00",
       "calendar_source": "Мои события",
       "status": "upcoming",
       "last_attempt_at": null,
@@ -30,101 +30,577 @@
       "task_id": null,
       "attempts": 0,
       "error": null,
-      "attendees_count": 7,
-      "attendees_required_count": 7,
-      "attendees_optional_count": 0,
+      "attendees_count": 24,
+      "attendees_required_count": 23,
+      "attendees_optional_count": 1,
       "attendees": [
         {
-          "name": "Екатерина Седунова",
-          "email": "eo.sedunova@razum.life",
+          "name": "Виктор Рулев",
+          "email": "rulev@razum.life",
           "partstat": "ACCEPTED",
           "role": "ORGANIZER"
         },
         {
-          "name": "Никита Любин",
-          "email": "lubin@razum.life",
-          "partstat": "NEEDS-ACTION",
-          "role": "REQ-PARTICIPANT"
-        },
-        {
-          "name": "Даниил Гринько",
-          "email": "grinko@razum.life",
-          "partstat": "NEEDS-ACTION",
-          "role": "REQ-PARTICIPANT"
-        },
-        {
-          "name": "Ксения Ситникова",
-          "email": "kv.sitnikova@razum.life",
-          "partstat": "NEEDS-ACTION",
-          "role": "REQ-PARTICIPANT"
-        },
-        {
-          "name": "Екатерина Г.",
-          "email": "gutrova@razum.life",
+          "name": "Андрей Кардапольцев",
+          "email": "kardapoltsev@razum.life",
           "partstat": "ACCEPTED",
           "role": "REQ-PARTICIPANT"
         },
         {
-          "name": "Наталья Скляр",
-          "email": "na.sklyar@razum.life",
+          "name": "Андрей Русанов",
+          "email": "rusanov@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Михаил Сычёв",
+          "email": "ms.sychev@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Николай Борисенко",
+          "email": "borisenko@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Людмила Синицына",
+          "email": "sinitsyna@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Анастасия Масленкова",
+          "email": "aa.maslenkova@razum.life",
           "partstat": "ACCEPTED",
           "role": "REQ-PARTICIPANT"
         },
         {
-          "name": "Ольга Краснова",
-          "email": "oa.krasnova@razum.life",
+          "name": "Мария Пустильник",
+          "email": "pustilnik@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Сергей Легенький",
+          "email": "sv.legenkiy@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Екатерина Рагузова",
+          "email": "raguzova@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Рамир Каримбаев",
+          "email": "karimbaev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Бибигуль Кандыкова",
+          "email": "bm.kandykova@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Евгения Тоскина",
+          "email": "toskina@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Владимир Мигин",
+          "email": "migin@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Роман Лебедев",
+          "email": "ri.lebedev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Роман Медведев",
+          "email": "ri.medvedev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Евгений Смык",
+          "email": "smyk@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Дудукина Ангелина",
+          "email": "aa.dudukina@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Олег Мокраусов",
+          "email": "mokrausov@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Елена Борцова",
+          "email": "bortsova@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Дмитрий Куцков",
+          "email": "kutskov@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Денис Филенко",
+          "email": "dn.filenko@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Рахим Утегалиев",
+          "email": "utegaliev@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Александр О.",
+          "email": "ovchinnikov@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        }
+      ],
+      "required_attendees": [
+        {
+          "name": "Виктор Рулев",
+          "email": "rulev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "ORGANIZER"
+        },
+        {
+          "name": "Андрей Кардапольцев",
+          "email": "kardapoltsev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Андрей Русанов",
+          "email": "rusanov@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Михаил Сычёв",
+          "email": "ms.sychev@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Николай Борисенко",
+          "email": "borisenko@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Людмила Синицына",
+          "email": "sinitsyna@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Анастасия Масленкова",
+          "email": "aa.maslenkova@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Мария Пустильник",
+          "email": "pustilnik@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Сергей Легенький",
+          "email": "sv.legenkiy@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Екатерина Рагузова",
+          "email": "raguzova@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Рамир Каримбаев",
+          "email": "karimbaev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Бибигуль Кандыкова",
+          "email": "bm.kandykova@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Евгения Тоскина",
+          "email": "toskina@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Владимир Мигин",
+          "email": "migin@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Роман Лебедев",
+          "email": "ri.lebedev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Роман Медведев",
+          "email": "ri.medvedev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Евгений Смык",
+          "email": "smyk@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Дудукина Ангелина",
+          "email": "aa.dudukina@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Олег Мокраусов",
+          "email": "mokrausov@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Дмитрий Куцков",
+          "email": "kutskov@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Денис Филенко",
+          "email": "dn.filenko@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Рахим Утегалиев",
+          "email": "utegaliev@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Александр О.",
+          "email": "ovchinnikov@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        }
+      ],
+      "optional_attendees": [
+        {
+          "name": "Елена Борцова",
+          "email": "bortsova@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "OPT-PARTICIPANT"
+        }
+      ],
+      "expected_participants": "Виктор Рулев - rulev@razum.life\nАндрей Кардапольцев - kardapoltsev@razum.life\nАндрей Русанов - rusanov@razum.life\nМихаил Сычёв - ms.sychev@razum.life\nНиколай Борисенко - borisenko@razum.life\nЛюдмила Синицына - sinitsyna@razum.life\nАнастасия Масленкова - aa.maslenkova@razum.life\nМария Пустильник - pustilnik@razum.life\nСергей Легенький - sv.legenkiy@razum.life\nЕкатерина Рагузова - raguzova@razum.life\nРамир Каримбаев - karimbaev@razum.life\nБибигуль Кандыкова - bm.kandykova@razum.life\nЕвгения Тоскина - toskina@razum.life\nВладимир Мигин - migin@razum.life\nРоман Лебедев - ri.lebedev@razum.life\nРоман Медведев - ri.medvedev@razum.life\nЕвгений Смык - smyk@razum.life\nДудукина Ангелина - aa.dudukina@razum.life\nОлег Мокраусов - mokrausov@razum.life\nЕлена Борцова - bortsova@razum.life\nДмитрий Куцков - kutskov@razum.life\nДенис Филенко - dn.filenko@razum.life\nРахим Утегалиев - utegaliev@razum.life\nАлександр О. - ovchinnikov@razum.life",
+      "expected_required_participants": "Виктор Рулев - rulev@razum.life\nАндрей Кардапольцев - kardapoltsev@razum.life\nАндрей Русанов - rusanov@razum.life\nМихаил Сычёв - ms.sychev@razum.life\nНиколай Борисенко - borisenko@razum.life\nЛюдмила Синицына - sinitsyna@razum.life\nАнастасия Масленкова - aa.maslenkova@razum.life\nМария Пустильник - pustilnik@razum.life\nСергей Легенький - sv.legenkiy@razum.life\nЕкатерина Рагузова - raguzova@razum.life\nРамир Каримбаев - karimbaev@razum.life\nБибигуль Кандыкова - bm.kandykova@razum.life\nЕвгения Тоскина - toskina@razum.life\nВладимир Мигин - migin@razum.life\nРоман Лебедев - ri.lebedev@razum.life\nРоман Медведев - ri.medvedev@razum.life\nЕвгений Смык - smyk@razum.life\nДудукина Ангелина - aa.dudukina@razum.life\nОлег Мокраусов - mokrausov@razum.life\nДмитрий Куцков - kutskov@razum.life\nДенис Филенко - dn.filenko@razum.life\nРахим Утегалиев - utegaliev@razum.life\nАлександр О. - ovchinnikov@razum.life",
+      "expected_optional_participants": "Елена Борцова - bortsova@razum.life"
+    },
+    {
+      "event_id": "calendar:141zhio16972fga0uu06we5iyandex.ru:2026-08-20T14:00:00+05:00",
+      "title": "РГ Продажи, IT",
+      "description": "Ссылка на видеовстречу: https://telemost.yandex.ru/j/0650005366\nПозвонить с телефона: +7 ​495 ​363-​15-​52, доб. 0650 ​0053 ​66#\n\nКайтен: https://razum.kaiten.ru/space/139122/boards?focus=board&focusId=1629095\n\nОсновные обсуждения:\n1. Бэклог МАКРО - результаты за неделю.\n2. ИИ в продажах\n3. У нас в МАКРО клиентоцентричность или сделкацентричность. Есть ли связка?\n\nЗадачи с предыдущей встречи (13.08):\n1. Дашборд по ДЗ – статус (отв. Астраханцева И.)\n2. Нестабильность Яндекс Телемоста – были ли зафиксированы и переданы кейсы сбоев (отв. РОП)\n3. Бот 1-й линии – статус по ТЗ (отв. Федотов И.)\n\nПовестка:\n1. Карусель номеров Билайн, специальное предложение (вопрос от Федотова И.)\n2. Дата увольнения/перевода сотрудника в Макро (вопрос от Парамоновой Е.)\n3. Чаты в Макро (вопрос от Астраханцевой И.)\n4. Дашборд ЦЗК (вопрос от Федотова И.)\n5. Логика броней в Macro CRM (вопрос от Федотова И.)",
+      "agenda": "",
+      "has_agenda": false,
+      "meeting_url": "https://telemost.yandex.ru/j/0650005366",
+      "starts_at": "2026-08-20T14:00:00+05:00",
+      "ends_at": "2026-08-20T15:00:00+05:00",
+      "calendar_source": "Мои события",
+      "status": "upcoming",
+      "last_attempt_at": null,
+      "dispatched_at": null,
+      "node_id": null,
+      "bot_id": null,
+      "task_id": null,
+      "attempts": 0,
+      "error": null,
+      "attendees_count": 20,
+      "attendees_required_count": 14,
+      "attendees_optional_count": 6,
+      "attendees": [
+        {
+          "name": "Анастасия Гузенко",
+          "email": "aa.guzenko@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "ORGANIZER"
+        },
+        {
+          "name": "Евгений Эрман",
+          "email": "erman@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Игорь Русанов",
+          "email": "rusanovigor@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Светлана Чигиринских",
+          "email": "chigirinskikh@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Вероника Мезенина",
+          "email": "mezenina@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Дмитрий Квитко",
+          "email": "kvitko@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Элеонора Кокоулина",
+          "email": "ev.kokoulina@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Тимофей Лютомский",
+          "email": "lyutomsky@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Александр Семенчук",
+          "email": "semenchuk@razum.life",
+          "partstat": "TENTATIVE",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Ирина Астраханцева",
+          "email": "astrakhantseva@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Алексей Сидоров",
+          "email": "av.sidorov@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Али Абуталиев",
+          "email": "abutaliev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Надежда Давыдова",
+          "email": "na.davydova@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Надежда Семенчук",
+          "email": "na.semenchuk@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Самира Шайхиева",
+          "email": "sa.shaikhieva@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Татьяна Мамутова",
+          "email": "yusupova@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Игорь Федотов",
+          "email": "fedotov@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Елизавета Парамонова",
+          "email": "ea.paramonova@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Александр Поздняк",
+          "email": "ai.pozdnyak@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Планирование Общее",
+          "email": "general.planning@razum.life",
           "partstat": "NEEDS-ACTION",
           "role": "REQ-PARTICIPANT"
         }
       ],
       "required_attendees": [
         {
-          "name": "Екатерина Седунова",
-          "email": "eo.sedunova@razum.life",
+          "name": "Анастасия Гузенко",
+          "email": "aa.guzenko@razum.life",
           "partstat": "ACCEPTED",
           "role": "ORGANIZER"
         },
         {
-          "name": "Никита Любин",
-          "email": "lubin@razum.life",
-          "partstat": "NEEDS-ACTION",
-          "role": "REQ-PARTICIPANT"
-        },
-        {
-          "name": "Даниил Гринько",
-          "email": "grinko@razum.life",
-          "partstat": "NEEDS-ACTION",
-          "role": "REQ-PARTICIPANT"
-        },
-        {
-          "name": "Ксения Ситникова",
-          "email": "kv.sitnikova@razum.life",
-          "partstat": "NEEDS-ACTION",
-          "role": "REQ-PARTICIPANT"
-        },
-        {
-          "name": "Екатерина Г.",
-          "email": "gutrova@razum.life",
+          "name": "Евгений Эрман",
+          "email": "erman@razum.life",
           "partstat": "ACCEPTED",
           "role": "REQ-PARTICIPANT"
         },
         {
-          "name": "Наталья Скляр",
-          "email": "na.sklyar@razum.life",
+          "name": "Игорь Русанов",
+          "email": "rusanovigor@razum.life",
           "partstat": "ACCEPTED",
           "role": "REQ-PARTICIPANT"
         },
         {
-          "name": "Ольга Краснова",
-          "email": "oa.krasnova@razum.life",
+          "name": "Светлана Чигиринских",
+          "email": "chigirinskikh@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Дмитрий Квитко",
+          "email": "kvitko@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Тимофей Лютомский",
+          "email": "lyutomsky@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Ирина Астраханцева",
+          "email": "astrakhantseva@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Алексей Сидоров",
+          "email": "av.sidorov@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Али Абуталиев",
+          "email": "abutaliev@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Надежда Давыдова",
+          "email": "na.davydova@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Самира Шайхиева",
+          "email": "sa.shaikhieva@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Елизавета Парамонова",
+          "email": "ea.paramonova@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Александр Поздняк",
+          "email": "ai.pozdnyak@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "REQ-PARTICIPANT"
+        },
+        {
+          "name": "Планирование Общее",
+          "email": "general.planning@razum.life",
           "partstat": "NEEDS-ACTION",
           "role": "REQ-PARTICIPANT"
         }
       ],
-      "optional_attendees": [],
-      "expected_participants": "Екатерина Седунова - eo.sedunova@razum.life\nНикита Любин - lubin@razum.life\nДаниил Гринько - grinko@razum.life\nКсения Ситникова - kv.sitnikova@razum.life\nЕкатерина Г. - gutrova@razum.life\nНаталья Скляр - na.sklyar@razum.life\nОльга Краснова - oa.krasnova@razum.life",
-      "expected_required_participants": "Екатерина Седунова - eo.sedunova@razum.life\nНикита Любин - lubin@razum.life\nДаниил Гринько - grinko@razum.life\nКсения Ситникова - kv.sitnikova@razum.life\nЕкатерина Г. - gutrova@razum.life\nНаталья Скляр - na.sklyar@razum.life\nОльга Краснова - oa.krasnova@razum.life",
-      "expected_optional_participants": ""
+      "optional_attendees": [
+        {
+          "name": "Вероника Мезенина",
+          "email": "mezenina@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Элеонора Кокоулина",
+          "email": "ev.kokoulina@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Александр Семенчук",
+          "email": "semenchuk@razum.life",
+          "partstat": "TENTATIVE",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Надежда Семенчук",
+          "email": "na.semenchuk@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Татьяна Мамутова",
+          "email": "yusupova@razum.life",
+          "partstat": "NEEDS-ACTION",
+          "role": "OPT-PARTICIPANT"
+        },
+        {
+          "name": "Игорь Федотов",
+          "email": "fedotov@razum.life",
+          "partstat": "ACCEPTED",
+          "role": "OPT-PARTICIPANT"
+        }
+      ],
+      "expected_participants": "Анастасия Гузенко - aa.guzenko@razum.life\nЕвгений Эрман - erman@razum.life\nИгорь Русанов - rusanovigor@razum.life\nСветлана Чигиринских - chigirinskikh@razum.life\nВероника Мезенина - mezenina@razum.life\nДмитрий Квитко - kvitko@razum.life\nЭлеонора Кокоулина - ev.kokoulina@razum.life\nТимофей Лютомский - lyutomsky@razum.life\nАлександр Семенчук - semenchuk@razum.life\nИрина Астраханцева - astrakhantseva@razum.life\nАлексей Сидоров - av.sidorov@razum.life\nАли Абуталиев - abutaliev@razum.life\nНадежда Давыдова - na.davydova@razum.life\nНадежда Семенчук - na.semenchuk@razum.life\nСамира Шайхиева - sa.shaikhieva@razum.life\nТатьяна Мамутова - yusupova@razum.life\nИгорь Федотов - fedotov@razum.life\nЕлизавета Парамонова - ea.paramonova@razum.life\nАлександр Поздняк - ai.pozdnyak@razum.life\nПланирование Общее - general.planning@razum.life",
+      "expected_required_participants": "Анастасия Гузенко - aa.guzenko@razum.life\nЕвгений Эрман - erman@razum.life\nИгорь Русанов - rusanovigor@razum.life\nСветлана Чигиринских - chigirinskikh@razum.life\nДмитрий Квитко - kvitko@razum.life\nТимофей Лютомский - lyutomsky@razum.life\nИрина Астраханцева - astrakhantseva@razum.life\nАлексей Сидоров - av.sidorov@razum.life\nАли Абуталиев - abutaliev@razum.life\nНадежда Давыдова - na.davydova@razum.life\nСамира Шайхиева - sa.shaikhieva@razum.life\nЕлизавета Парамонова - ea.paramonova@razum.life\nАлександр Поздняк - ai.pozdnyak@razum.life\nПланирование Общее - general.planning@razum.life",
+      "expected_optional_participants": "Вероника Мезенина - mezenina@razum.life\nЭлеонора Кокоулина - ev.kokoulina@razum.life\nАлександр Семенчук - semenchuk@razum.life\nНадежда Семенчук - na.semenchuk@razum.life\nТатьяна Мамутова - yusupova@razum.life\nИгорь Федотов - fedotov@razum.life"
     }
   ]
 }

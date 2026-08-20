@@ -16,6 +16,7 @@ from .calendar_state import (
     write_json_file,
 )
 from .config import PROJECT_ROOT, load_nodes
+from .dispatch_guard import active_assignment, meeting_dispatch_lock, normalize_meeting_url
 
 
 try:
@@ -61,6 +62,8 @@ class CalendarMonitor:
         self.lookahead_hours = int(os.getenv("CALENDAR_LOOKAHEAD_HOURS", "2"))
         self.missed_lookback = timedelta(minutes=int(os.getenv("CALENDAR_MISSED_LOOKBACK_MINUTES", "10")))
         self.dispatch_keep_hours = int(os.getenv("CALENDAR_DISPATCH_KEEP_HOURS", "24"))
+        self.dynamic_agenda_enabled = os.getenv("CALENDAR_DYNAMIC_AGENDA_ENABLED", "1").lower() in ("1", "true", "yes")
+        self.dynamic_agenda_interval = int(os.getenv("CALENDAR_DYNAMIC_AGENDA_POLL_SECONDS", "10"))
         self.upcoming_file = resolve_project_path(os.getenv("CALENDAR_UPCOMING_FILE", "data/calendar_upcoming.json"))
         self.dispatch_state_file = resolve_project_path(
             os.getenv("CALENDAR_DISPATCH_STATE_FILE", "data/calendar_dispatch_state.json")
@@ -106,6 +109,8 @@ class CalendarMonitor:
             "lookahead_hours": self.lookahead_hours,
             "missed_lookback_minutes": int(self.missed_lookback.total_seconds() // 60),
             "dispatch_keep_hours": self.dispatch_keep_hours,
+            "dynamic_agenda_enabled": self.dynamic_agenda_enabled,
+            "dynamic_agenda_poll_seconds": self.dynamic_agenda_interval,
             "upcoming_file": str(self.upcoming_file),
             "dispatch_state_file": str(self.dispatch_state_file),
             "upcoming_generated_at": upcoming.get("generated_at"),
@@ -172,7 +177,7 @@ class CalendarMonitor:
     async def tick(self) -> None:
         async with self._tick_lock:
             self._last_checked_at = datetime.now(timezone.utc).isoformat()
-            events = await self.fetch_events()
+            events = self.deduplicate_occurrences(await self.fetch_events())
             now = datetime.now(timezone.utc)
 
             if self.control_enabled:
@@ -210,6 +215,7 @@ class CalendarMonitor:
             return self.read_upcoming()
 
     async def update_calendar_control(self, events: list[CalendarEvent], now: datetime) -> None:
+        events = self.deduplicate_occurrences(events)
         relevant_events = sorted(
             [event for event in events if self.event_is_in_control_window(event, now)],
             key=lambda item: item.starts_at,
@@ -259,6 +265,8 @@ class CalendarMonitor:
                 "starts_at": event.starts_at.isoformat(),
                 "ends_at": event.ends_at.isoformat() if event.ends_at else None,
                 "calendar_source": event.calendar_source,
+                "initial_agenda_present": bool(extract_agenda_from_description(event.description)),
+                "dynamic_agenda_status": "not_needed" if extract_agenda_from_description(event.description) else "watching",
                 "last_attempt_at": attempt_at,
                 "attempts": int(record.get("attempts") or 0) + 1,
                 "error": None,
@@ -291,6 +299,9 @@ class CalendarMonitor:
                 self._last_dispatched_at = datetime.now(timezone.utc).isoformat()
             changed = True
 
+        if await self.update_dynamic_agendas(relevant_events, dispatched, now):
+            changed = True
+
         if changed:
             write_json_file(self.dispatch_state_file, dispatch_state)
             refreshed_rows = []
@@ -309,6 +320,119 @@ class CalendarMonitor:
                 }
             )
 
+    async def update_dynamic_agendas(self, events: list[CalendarEvent], dispatched: dict, now: datetime) -> bool:
+        if not self.dynamic_agenda_enabled:
+            return False
+
+        nodes_by_id = {node.id: node for node in load_nodes()}
+        changed = False
+        for event in events:
+            event_id = self.external_event_id(event)
+            record = dispatched.get(event_id) or {}
+            if not self.should_poll_dynamic_agenda(event, record, now):
+                continue
+
+            record["dynamic_agenda_last_checked_at"] = datetime.now(timezone.utc).isoformat()
+            node_id = str(record.get("node_id") or "")
+            bot_id = str(record.get("bot_id") or "")
+            node = nodes_by_id.get(node_id)
+            if node is None or not bot_id:
+                record.update({
+                    "dynamic_agenda_status": "failed",
+                    "dynamic_agenda_error": "missing node_id or bot_id for dispatched meeting",
+                })
+                changed = True
+                continue
+
+            client = BotNodeClient(node, timeout_seconds=8)
+            try:
+                status = await asyncio.to_thread(client.agenda_status, bot_id)
+            except BotNodeError as error:
+                record.update({
+                    "dynamic_agenda_status": "status_error",
+                    "dynamic_agenda_error": str(error),
+                })
+                changed = True
+                continue
+
+            if status.get("agenda_active"):
+                record.update({
+                    "dynamic_agenda_status": "stopped",
+                    "dynamic_agenda_done": True,
+                    "dynamic_agenda_stop_reason": "bot_already_has_agenda",
+                    "dynamic_agenda_source": status.get("source"),
+                    "dynamic_agenda_items_count": status.get("items_count"),
+                    "dynamic_agenda_error": None,
+                })
+                print(f"[CalendarMonitor] Stop agenda polling for {event_id}: bot already has agenda from {status.get('source')}")
+                changed = True
+                continue
+
+            agenda = extract_agenda_from_description(event.description)
+            if not agenda:
+                record.update({
+                    "dynamic_agenda_status": "watching",
+                    "dynamic_agenda_error": None,
+                })
+                changed = True
+                continue
+
+            payload = {
+                "raw_agenda": agenda,
+                "source": "calendar_monitor",
+                "calendar_event_id": event_id,
+                "meeting_url": event.meeting_url,
+            }
+            try:
+                result = await asyncio.to_thread(client.activate_agenda, bot_id, payload)
+            except BotNodeError as error:
+                record.update({
+                    "dynamic_agenda_status": "activate_error",
+                    "dynamic_agenda_error": str(error),
+                })
+                changed = True
+                continue
+
+            result_status = str(result.get("status") or "unknown")
+            record.update({
+                "dynamic_agenda_status": result_status,
+                "dynamic_agenda_result": result,
+                "dynamic_agenda_error": result.get("error"),
+                "dynamic_agenda_source": result.get("source") or "calendar_monitor",
+                "dynamic_agenda_items_count": result.get("items_count"),
+            })
+            if result_status in ("agenda_activated", "already_active"):
+                record["dynamic_agenda_done"] = True
+                record["dynamic_agenda_stop_reason"] = result_status
+                print(f"[CalendarMonitor] Dynamic agenda accepted for {event_id}: {result_status}")
+            else:
+                record["dynamic_agenda_done"] = False
+                print(f"[CalendarMonitor] Dynamic agenda not accepted for {event_id}: {result_status}")
+            changed = True
+
+        return changed
+
+    def should_poll_dynamic_agenda(self, event: CalendarEvent, record: dict, now: datetime) -> bool:
+        if record.get("status") != "dispatched":
+            return False
+        if record.get("dynamic_agenda_done"):
+            return False
+        if not self.event_is_currently_active(event, now):
+            return False
+
+        last_checked = parse_iso_datetime(record.get("dynamic_agenda_last_checked_at"))
+        if last_checked is not None:
+            elapsed = (now - last_checked.astimezone(timezone.utc)).total_seconds()
+            if elapsed < self.dynamic_agenda_interval:
+                return False
+        return True
+
+    @staticmethod
+    def event_is_currently_active(event: CalendarEvent, now: datetime) -> bool:
+        starts_at = event.starts_at.astimezone(timezone.utc)
+        ends_at = event.ends_at.astimezone(timezone.utc) if event.ends_at else starts_at + timedelta(hours=1)
+        return starts_at <= now <= ends_at
+
     def event_is_in_control_window(self, event: CalendarEvent, now: datetime) -> bool:
         starts_at = event.starts_at.astimezone(timezone.utc)
         lower_bound = now - self.missed_lookback
@@ -325,6 +449,27 @@ class CalendarMonitor:
     def external_event_id(self, event: CalendarEvent) -> str:
         starts_at = event.starts_at.isoformat() if event.starts_at else "unknown-start"
         return f"calendar:{event.uid}:{starts_at}"
+
+    def occurrence_key(self, event: CalendarEvent) -> str:
+        starts_at = event.starts_at.astimezone(timezone.utc).isoformat()
+        meeting_url = normalize_meeting_url(event.meeting_url)
+        return f"{meeting_url}|{starts_at}" if meeting_url else f"{event.uid}|{starts_at}"
+
+    def deduplicate_occurrences(self, events: list[CalendarEvent]) -> list[CalendarEvent]:
+        unique: dict[str, CalendarEvent] = {}
+        for event in events:
+            key = self.occurrence_key(event)
+            current = unique.get(key)
+            if current is None:
+                unique[key] = event
+                continue
+            current_agenda = bool(extract_agenda_from_description(current.description))
+            candidate_agenda = bool(extract_agenda_from_description(event.description))
+            if candidate_agenda and not current_agenda:
+                unique[key] = event
+            elif candidate_agenda == current_agenda and len(event.attendees) > len(current.attendees):
+                unique[key] = event
+        return list(unique.values())
 
     def event_to_row(self, event: CalendarEvent, event_id: str, record: dict | None, now: datetime) -> dict:
         record = record or {}
@@ -576,19 +721,23 @@ class CalendarMonitor:
             "expected_participants": format_expected_participants(event.attendees) or None,
         }
 
-        nodes = load_nodes()
-        statuses = await asyncio.gather(*(asyncio.to_thread(BotNodeClient(node).status) for node in nodes))
-        for node, status in zip(nodes, statuses):
-            if status.get("status") != "online":
-                continue
-            if int(status.get("bots_idle") or 0) <= 0:
-                continue
-            try:
-                result = await asyncio.to_thread(BotNodeClient(node).create_meeting_any_bot, payload)
-                print(f"[CalendarMonitor] Dispatched {event.uid} to {node.id}: {result}")
-                return {"node_id": node.id, **result}
-            except BotNodeError as error:
-                print(f"[CalendarMonitor] Dispatch to {node.id} failed: {error}")
+        async with meeting_dispatch_lock:
+            nodes = load_nodes()
+            statuses = await asyncio.gather(*(asyncio.to_thread(BotNodeClient(node).status) for node in nodes))
+            existing = active_assignment(statuses, event.meeting_url)
+            if existing is not None:
+                raise RuntimeError(f"Meeting is already assigned: {existing}")
+            for node, status in zip(nodes, statuses):
+                if status.get("status") != "online":
+                    continue
+                if int(status.get("bots_idle") or 0) <= 0:
+                    continue
+                try:
+                    result = await asyncio.to_thread(BotNodeClient(node).create_meeting_any_bot, payload)
+                    print(f"[CalendarMonitor] Dispatched {event.uid} to {node.id}: {result}")
+                    return {"node_id": node.id, **result}
+                except BotNodeError as error:
+                    print(f"[CalendarMonitor] Dispatch to {node.id} failed: {error}")
 
         raise RuntimeError("No idle bot available for calendar event")
 

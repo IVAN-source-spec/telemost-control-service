@@ -1,5 +1,6 @@
 import json
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import asdict
 from typing import Any
@@ -64,4 +65,13 @@ class BotNodeClient:
         return self.request_json("POST", "/api/v1/bots/meetings", payload)
 
     def create_meeting_for_bot(self, bot_id: str, payload: dict[str, Any]) -> dict:
-        return self.request_json("POST", f"/api/v1/bots/{bot_id}/meetings", payload)
+        safe_bot_id = urllib.parse.quote(bot_id, safe="")
+        return self.request_json("POST", f"/api/v1/bots/{safe_bot_id}/meetings", payload)
+
+    def agenda_status(self, bot_id: str) -> dict:
+        safe_bot_id = urllib.parse.quote(bot_id, safe="")
+        return self.request_json("GET", f"/api/v1/bots/{safe_bot_id}/agenda/status")
+
+    def activate_agenda(self, bot_id: str, payload: dict[str, Any]) -> dict:
+        safe_bot_id = urllib.parse.quote(bot_id, safe="")
+        return self.request_json("POST", f"/api/v1/bots/{safe_bot_id}/agenda/activate", payload)

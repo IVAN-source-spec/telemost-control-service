@@ -16,6 +16,7 @@ from .config import (
     load_nodes,
 )
 from .dashboard import DASHBOARD_HTML
+from .dispatch_guard import active_assignment, meeting_dispatch_lock
 
 
 load_env()
@@ -32,6 +33,14 @@ class MeetingRequest(BaseModel):
     organizer: Optional[str] = None
     expected_participants: Optional[str] = None
     agenda: Optional[str] = None
+
+
+class AgendaActivationRequest(BaseModel):
+    raw_agenda: str
+    source: Optional[str] = "control_dashboard"
+    calendar_event_id: Optional[str] = None
+    meeting_url: Optional[str] = None
+    author: Optional[str] = None
 
 
 @asynccontextmanager
@@ -108,9 +117,10 @@ def find_node(node_id: str) -> BotNodeConfig:
     raise HTTPException(status_code=404, detail=f"Node not found: {node_id}")
 
 
-async def select_first_idle_node() -> tuple[BotNodeConfig, dict]:
+async def select_first_idle_node(statuses: list[dict] | None = None) -> tuple[BotNodeConfig, dict]:
     configured_nodes = nodes()
-    statuses = await asyncio.gather(*(node_status(node) for node in configured_nodes))
+    if statuses is None:
+        statuses = await asyncio.gather(*(node_status(node) for node in configured_nodes))
     for node, status in zip(configured_nodes, statuses):
         if status.get("status") != "online":
             continue
@@ -123,12 +133,18 @@ async def select_first_idle_node() -> tuple[BotNodeConfig, dict]:
 async def create_meeting_on_any_node(req: MeetingRequest, _auth=Depends(require_control_token)):
     if not req.meeting_url.strip():
         raise HTTPException(status_code=400, detail="meeting_url is required")
-    node, _status = await select_first_idle_node()
-    payload = req.dict()
-    try:
-        result = await asyncio.to_thread(BotNodeClient(node).create_meeting_any_bot, payload)
-    except BotNodeError as error:
-        raise HTTPException(status_code=502, detail=str(error)) from error
+    async with meeting_dispatch_lock:
+        configured_nodes = nodes()
+        statuses = await asyncio.gather(*(node_status(node) for node in configured_nodes))
+        existing = active_assignment(statuses, req.meeting_url)
+        if existing is not None:
+            raise HTTPException(status_code=409, detail={"message": "Meeting is already assigned", **existing})
+        node, _status = await select_first_idle_node(statuses)
+        payload = req.dict()
+        try:
+            result = await asyncio.to_thread(BotNodeClient(node).create_meeting_any_bot, payload)
+        except BotNodeError as error:
+            raise HTTPException(status_code=502, detail=str(error)) from error
     return {
         **result,
         "node_id": node.id,
@@ -145,16 +161,46 @@ async def create_meeting_on_specific_bot(
 ):
     if not req.meeting_url.strip():
         raise HTTPException(status_code=400, detail="meeting_url is required")
+    async with meeting_dispatch_lock:
+        configured_nodes = nodes()
+        statuses = await asyncio.gather(*(node_status(item) for item in configured_nodes))
+        existing = active_assignment(statuses, req.meeting_url)
+        if existing is not None:
+            raise HTTPException(status_code=409, detail={"message": "Meeting is already assigned", **existing})
+        node = find_node(node_id)
+        payload = req.dict()
+        try:
+            result = await asyncio.to_thread(BotNodeClient(node).create_meeting_for_bot, bot_id, payload)
+        except BotNodeError as error:
+            raise HTTPException(status_code=502, detail=str(error)) from error
+    return {
+        **result,
+        "node_id": node.id,
+        "node_name": node.name,
+    }
+
+
+@app.post("/api/v1/nodes/{node_id}/bots/{bot_id}/agenda/activate")
+async def activate_agenda_on_specific_bot(
+    node_id: str,
+    bot_id: str,
+    req: AgendaActivationRequest,
+    _auth=Depends(require_control_token),
+):
+    if not req.raw_agenda.strip():
+        raise HTTPException(status_code=400, detail="raw_agenda is required")
     node = find_node(node_id)
     payload = req.dict()
+    payload["source"] = payload.get("source") or "control_dashboard"
     try:
-        result = await asyncio.to_thread(BotNodeClient(node).create_meeting_for_bot, bot_id, payload)
+        result = await asyncio.to_thread(BotNodeClient(node).activate_agenda, bot_id, payload)
     except BotNodeError as error:
         raise HTTPException(status_code=502, detail=str(error)) from error
     return {
         **result,
         "node_id": node.id,
         "node_name": node.name,
+        "bot_id": bot_id,
     }
 
 
