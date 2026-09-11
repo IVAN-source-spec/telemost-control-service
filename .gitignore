@@ -37,6 +37,18 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Local test artifacts
+# Local test artifacts and persistent analytics databases
 *.sqlite
+*.sqlite3
 *.db
+
+# Production-local artifacts
+.codex-backup*/
+.codex-backups/
+backups/
+config/kuma.json
+config/*_notifications.json
+data/*.json
+data/*.archive-*
+*.bak*
+*.before-*

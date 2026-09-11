@@ -9,6 +9,22 @@ services:
     user: "1002:1002"
     env_file:
       - .env
+    environment:
+      CONTROL_SERVICE_HOST: "127.0.0.1"
+      AWS_SHARED_CREDENTIALS_FILE: "/app/.aws/credentials"
+      AWS_PROFILE: "telemost-ec2-controller"
+      AWS_CAPACITY_AUTOMATION_ENABLED: "1"
+      AWS_CAPACITY_INTERVAL_SECONDS: "900"
+      AWS_CAPACITY_WINDOW_MINUTES: "60"
+      AWS_CAPACITY_RESERVE_BOTS: "2"
+      AWS_CAPACITY_CALENDAR_STALE_SECONDS: "180"
+      AWS_CAPACITY_STOP_CONFIRMATIONS: "2"
+      AWS_CAPACITY_STOP_CONFIRMATION_INTERVAL_SECONDS: "840"
+      AWS_CAPACITY_MANUAL_HOLD_SECONDS: "1800"
+      AWS_CAPACITY_AUTO_MIN_UPTIME_SECONDS: "1200"
+      AWS_CAPACITY_ACTION_COOLDOWN_SECONDS: "300"
+      AWS_CAPACITY_STATE_FILE: "data/aws_capacity_state.json"
     volumes:
       - ./config:/app/config:ro
       - ./data:/app/data
+      - /home/razumadmin/.aws/credentials:/app/.aws/credentials:ro

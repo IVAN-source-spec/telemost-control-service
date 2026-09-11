@@ -16,9 +16,7 @@ def load_env(path: Path | None = None) -> None:
         if not value or value.startswith("#") or "=" not in value:
             continue
         key, raw = value.split("=", 1)
-        key = key.strip()
-        raw = raw.strip().strip('"').strip("'")
-        os.environ.setdefault(key, raw)
+        os.environ.setdefault(key.strip(), raw.strip().strip('"').strip("'"))
 
 
 @dataclass(frozen=True)
@@ -27,6 +25,11 @@ class BotNodeConfig:
     name: str
     base_url: str
     token: str = ""
+    machine_id: str = ""
+    machine_name: str = ""
+    lifecycle: str = "persistent"
+    provider: str = ""
+    public_ip: str = ""
 
 
 def load_nodes() -> list[BotNodeConfig]:
@@ -41,17 +44,20 @@ def load_nodes() -> list[BotNodeConfig]:
             return []
         payload = json.loads(config_path.read_text(encoding="utf-8"))
 
-    nodes = []
-    for item in payload:
-        nodes.append(
-            BotNodeConfig(
-                id=str(item["id"]),
-                name=str(item.get("name") or item["id"]),
-                base_url=str(item["base_url"]).rstrip("/"),
-                token=str(item.get("token") or ""),
-            )
+    return [
+        BotNodeConfig(
+            id=str(item["id"]),
+            name=str(item.get("name") or item["id"]),
+            base_url=str(item["base_url"]).rstrip("/"),
+            token=str(item.get("token") or ""),
+            machine_id=str(item.get("machine_id") or ""),
+            machine_name=str(item.get("machine_name") or ""),
+            lifecycle=str(item.get("lifecycle") or "persistent"),
+            provider=str(item.get("provider") or ""),
+            public_ip=str(item.get("public_ip") or ""),
         )
-    return nodes
+        for item in payload
+    ]
 
 
 def control_token_required() -> bool:
@@ -60,3 +66,15 @@ def control_token_required() -> bool:
 
 def control_api_token() -> str:
     return os.getenv("CONTROL_SERVICE_API_TOKEN", "")
+
+
+def session_validator_url() -> str:
+    return os.getenv("SESSION_VALIDATOR_URL", "http://127.0.0.1:8050").rstrip("/")
+
+
+def assignment_service_url() -> str:
+    return os.getenv("ASSIGNMENT_SERVICE_URL", "http://127.0.0.1:8040").rstrip("/")
+
+
+def assignment_service_api_token() -> str:
+    return os.getenv("ASSIGNMENT_SERVICE_API_TOKEN", "").strip()

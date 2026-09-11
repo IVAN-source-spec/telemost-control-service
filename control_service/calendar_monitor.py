@@ -9,6 +9,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .bot_node_client import BotNodeClient, BotNodeError
+from .calendar_agenda import CalendarAgendaService
 from .calendar_state import (
     prune_dispatch_state,
     read_json_file,
@@ -24,7 +25,7 @@ try:
 except ZoneInfoNotFoundError:
     DEFAULT_CALENDAR_TZ = timezone(timedelta(hours=4), name="Europe/Astrakhan")
 
-TELEMOST_RE = re.compile(r"https://telemost\.yandex\.ru/[^\s<>'\"\\]+", re.IGNORECASE)
+TELEMOST_RE = re.compile(r"https://telemost\.(?:360\.)?yandex\.ru/[^\s<>'\"\\]+", re.IGNORECASE)
 AGENDA_BLOCK_RE = re.compile(r"###\s*Повестка\s*:\s*(.*?)\s*###", re.IGNORECASE | re.DOTALL)
 
 
@@ -74,6 +75,31 @@ class CalendarMonitor:
         self._last_checked_at: str | None = None
         self._last_dispatched_at: str | None = None
         self._tick_lock = asyncio.Lock()
+        self._control_update_callbacks = []
+        self._calendar_agendas = CalendarAgendaService()
+
+    def add_control_update_callback(self, callback) -> None:
+        self._control_update_callbacks.append(callback)
+
+    def notify_control_schedule_changed(self) -> None:
+        for callback in tuple(self._control_update_callbacks):
+            try:
+                callback()
+            except Exception as error:
+                print(f"[CalendarMonitor] Control update callback failed: {error}")
+
+    @staticmethod
+    def control_schedule_signature(payload: dict) -> tuple:
+        return tuple(sorted(
+            (
+                str(item.get("event_id") or ""),
+                str(item.get("starts_at") or ""),
+                str(item.get("ends_at") or ""),
+                str(item.get("meeting_url") or ""),
+            )
+            for item in payload.get("events") or []
+            if item.get("meeting_url")
+        ))
 
     def _timezone_from_env(self):
         name = os.getenv("CALENDAR_TIMEZONE", "Europe/Astrakhan")
@@ -149,6 +175,7 @@ class CalendarMonitor:
 
     def stop(self) -> None:
         self._stop_event.set()
+        self._calendar_agendas.stop()
 
     async def run_forever(self) -> None:
         if not self.enabled:
@@ -215,6 +242,7 @@ class CalendarMonitor:
             return self.read_upcoming()
 
     async def update_calendar_control(self, events: list[CalendarEvent], now: datetime) -> None:
+        previous_schedule = self.control_schedule_signature(self.read_upcoming())
         events = self.deduplicate_occurrences(events)
         relevant_events = sorted(
             [event for event in events if self.event_is_in_control_window(event, now)],
@@ -229,17 +257,18 @@ class CalendarMonitor:
             row = self.event_to_row(event, event_id, dispatched.get(event_id), now)
             event_rows.append(row)
 
-        self.write_upcoming(
-            {
-                "generated_at": now.isoformat(),
-                "range": {
-                    "start": now.isoformat(),
-                    "end": (now + timedelta(hours=self.lookahead_hours)).isoformat(),
-                },
-                "summary": self.upcoming_summary(event_rows),
-                "events": event_rows,
-            }
-        )
+        upcoming_payload = {
+            "generated_at": now.isoformat(),
+            "range": {
+                "start": now.isoformat(),
+                "end": (now + timedelta(hours=self.lookahead_hours)).isoformat(),
+            },
+            "summary": self.upcoming_summary(event_rows),
+            "events": event_rows,
+        }
+        self.write_upcoming(upcoming_payload)
+        if self.control_schedule_signature(upcoming_payload) != previous_schedule:
+            self.notify_control_schedule_changed()
 
         changed = False
         for event in relevant_events:
@@ -299,7 +328,7 @@ class CalendarMonitor:
                 self._last_dispatched_at = datetime.now(timezone.utc).isoformat()
             changed = True
 
-        if await self.update_dynamic_agendas(relevant_events, dispatched, now):
+        if await self.update_dynamic_agendas(events, dispatched, now):
             changed = True
 
         if changed:
@@ -325,91 +354,66 @@ class CalendarMonitor:
             return False
 
         nodes_by_id = {node.id: node for node in load_nodes()}
+        retained = set()
         changed = False
         for event in events:
             event_id = self.external_event_id(event)
             record = dispatched.get(event_id) or {}
-            if not self.should_poll_dynamic_agenda(event, record, now):
-                continue
-
-            record["dynamic_agenda_last_checked_at"] = datetime.now(timezone.utc).isoformat()
+            session_id = str(record.get("task_id") or (record.get("result") or {}).get("session_id") or "")
             node_id = str(record.get("node_id") or "")
             bot_id = str(record.get("bot_id") or "")
-            node = nodes_by_id.get(node_id)
-            if node is None or not bot_id:
-                record.update({
-                    "dynamic_agenda_status": "failed",
-                    "dynamic_agenda_error": "missing node_id or bot_id for dispatched meeting",
-                })
-                changed = True
+            key = (event_id, node_id, bot_id, session_id)
+            if record.get("status") != "dispatched" or record.get("dynamic_agenda_done"):
                 continue
-
-            client = BotNodeClient(node, timeout_seconds=8)
+            retained.add(key)
+            if not self.should_poll_dynamic_agenda(event, record, now):
+                continue
+            record["dynamic_agenda_last_checked_at"] = datetime.now(timezone.utc).isoformat()
+            node = nodes_by_id.get(node_id)
+            changed = True
+            if node is None or not bot_id or not session_id:
+                record.update(dynamic_agenda_status="missing_assignment", dynamic_agenda_error=None)
+                continue
+            client = BotNodeClient(node, timeout_seconds=5)
             try:
                 status = await asyncio.to_thread(client.agenda_status, bot_id)
             except BotNodeError as error:
-                record.update({
-                    "dynamic_agenda_status": "status_error",
-                    "dynamic_agenda_error": str(error),
-                })
-                changed = True
+                if error.status_code == 404:
+                    record.update(dynamic_agenda_status="meeting_ended", dynamic_agenda_done=True)
+                    retained.discard(key)
+                else:
+                    record.update(dynamic_agenda_status="status_error")
+                record["dynamic_agenda_error"] = None
                 continue
-
+            if status.get("session_id") != session_id:
+                record.update(dynamic_agenda_status="meeting_ended", dynamic_agenda_done=True,
+                              dynamic_agenda_error=None)
+                retained.discard(key)
+                continue
             if status.get("agenda_active"):
-                record.update({
-                    "dynamic_agenda_status": "stopped",
-                    "dynamic_agenda_done": True,
-                    "dynamic_agenda_stop_reason": "bot_already_has_agenda",
-                    "dynamic_agenda_source": status.get("source"),
-                    "dynamic_agenda_items_count": status.get("items_count"),
-                    "dynamic_agenda_error": None,
-                })
-                print(f"[CalendarMonitor] Stop agenda polling for {event_id}: bot already has agenda from {status.get('source')}")
-                changed = True
+                result = {"status": "already_active", "source": status.get("source"),
+                          "items_count": status.get("items_count")}
+            elif not status.get("meeting_started"):
+                record.update(dynamic_agenda_status="waiting_for_meeting", dynamic_agenda_error=None)
                 continue
-
-            agenda = extract_agenda_from_description(event.description)
-            if not agenda:
-                record.update({
-                    "dynamic_agenda_status": "watching",
-                    "dynamic_agenda_error": None,
-                })
-                changed = True
-                continue
-
-            payload = {
-                "raw_agenda": agenda,
-                "source": "calendar_monitor",
-                "calendar_event_id": event_id,
-                "meeting_url": event.meeting_url,
-            }
-            try:
-                result = await asyncio.to_thread(client.activate_agenda, bot_id, payload)
-            except BotNodeError as error:
-                record.update({
-                    "dynamic_agenda_status": "activate_error",
-                    "dynamic_agenda_error": str(error),
-                })
-                changed = True
-                continue
-
-            result_status = str(result.get("status") or "unknown")
-            record.update({
-                "dynamic_agenda_status": result_status,
-                "dynamic_agenda_result": result,
-                "dynamic_agenda_error": result.get("error"),
-                "dynamic_agenda_source": result.get("source") or "calendar_monitor",
-                "dynamic_agenda_items_count": result.get("items_count"),
-            })
-            if result_status in ("agenda_activated", "already_active"):
-                record["dynamic_agenda_done"] = True
-                record["dynamic_agenda_stop_reason"] = result_status
-                print(f"[CalendarMonitor] Dynamic agenda accepted for {event_id}: {result_status}")
             else:
-                record["dynamic_agenda_done"] = False
-                print(f"[CalendarMonitor] Dynamic agenda not accepted for {event_id}: {result_status}")
-            changed = True
-
+                # This description was freshly fetched this cycle. Changed text replaces any
+                # pending result before it can be sent; the session is guarded on the bot too.
+                result = await self._calendar_agendas.step(
+                    key, event.description, extract_agenda_from_description(event.description),
+                    client, bot_id, session_id)
+            result_status = result.get("status", "watching")
+            done = result_status in ("agenda_activated", "already_active", "meeting_ended")
+            record.update(dynamic_agenda_status=result_status, dynamic_agenda_done=done,
+                          dynamic_agenda_error=None,
+                          dynamic_agenda_source=result.get("source") or "calendar_monitor",
+                          dynamic_agenda_items_count=result.get("items_count"))
+            # No model response or absence/error message is published to a bot card or chat.
+            record.pop("dynamic_agenda_result", None)
+            if done:
+                retained.discard(key)
+                record["dynamic_agenda_stop_reason"] = result_status
+        self._calendar_agendas.retain(retained)
         return changed
 
     def should_poll_dynamic_agenda(self, event: CalendarEvent, record: dict, now: datetime) -> bool:
@@ -417,7 +421,7 @@ class CalendarMonitor:
             return False
         if record.get("dynamic_agenda_done"):
             return False
-        if not self.event_is_currently_active(event, now):
+        if event.starts_at.astimezone(timezone.utc) > now:
             return False
 
         last_checked = parse_iso_datetime(record.get("dynamic_agenda_last_checked_at"))
@@ -601,7 +605,7 @@ class CalendarMonitor:
             raise RuntimeError("No CalDAV calendars found")
 
         now = datetime.now(timezone.utc)
-        start = now - self.join_after_start - timedelta(minutes=5)
+        start = now - timedelta(hours=max(24, self.dispatch_keep_hours))
         end = now + self.join_before + timedelta(hours=6)
 
         events: list[CalendarEvent] = []
@@ -712,7 +716,7 @@ class CalendarMonitor:
         payload = {
             "meeting_url": event.meeting_url,
             "title": event.title,
-            "agenda": agenda or None,
+            "agenda": None if self.control_enabled and self.dynamic_agenda_enabled else (agenda or None),
             "source": "bot_calendar",
             "external_event_id": external_event_id,
             "scheduled_start_at": event.starts_at.isoformat(),
