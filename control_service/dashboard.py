@@ -236,7 +236,9 @@ function render(data) {
         <div class="badge ${node.status === "online" ? "" : "busy"}">${esc(node.status)}</div>
       </div>
       <div class="bots">
-        ${(node.bots || []).map(bot => `
+        ${(node.bots || []).map(bot => {
+          const agenda = agendaInfo(bot);
+          return `
           <div class="bot ${bot.status}">
             <strong>${esc(bot.global_bot_id || bot.bot_id)}</strong>
             <span class="badge ${bot.status}">${esc(bot.status)}</span>
@@ -244,7 +246,19 @@ function render(data) {
               <span class="muted">Встреча</span><span>${esc(bot.title || bot.session_id || "-")}</span>
               <span class="muted">Ссылка</span><span>${esc(bot.meeting_url || "-")}</span>
               <span class="muted">Старт</span><span>${esc(bot.started_at || "-")}</span>
+              <span class="muted">Повестка</span><span class="${agenda.css}">${esc(agenda.text)}</span>
             </div>
+            ${bot.status !== "idle" ? `
+              <div class="agenda-box">
+                ${agenda.active ? `<div class="muted">Новая повестка через дашборд не принимается: первая корректная повестка уже зафиксирована.</div>` : `
+                  <form class="agenda-form" data-node-id="${esc(node.node_id)}" data-bot-id="${esc(bot.bot_id)}">
+                    <textarea name="raw_agenda" placeholder="Добавить повестку: ###Повестка: #1. Вопрос - 10:00 #2. Следующий вопрос###"></textarea>
+                    <button type="submit">Добавить повестку</button>
+                    <div class="agenda-message message"></div>
+                  </form>
+                `}
+              </div>
+            ` : ""}
             ${bot.status === "idle" ? `
               <form class="bot-form" data-node-id="${esc(node.node_id)}" data-bot-id="${esc(bot.bot_id)}">
                 <div class="row" style="grid-template-columns:1fr; margin-top:10px;">
@@ -257,8 +271,8 @@ function render(data) {
                 </div>
               </form>
             ` : ""}
-          </div>
-        `).join("")}
+          </div>`;
+        }).join("")}
       </div>
     </article>
   `).join("");

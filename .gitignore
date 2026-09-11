@@ -40,3 +40,14 @@ Thumbs.db
 # Local test artifacts
 *.sqlite
 *.db
+
+# Production-local artifacts
+.codex-backup*/
+.codex-backups/
+backups/
+.env.*
+!.env.example
+config/kuma.json
+data/
+*.bak*
+*.before-*
