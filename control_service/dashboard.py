@@ -752,6 +752,10 @@ function agendaEditingActive() {
   return form && !agendaSubmissions.get(agendaFormKey(form))?.pending;
 }
 
+function employeePickerOpen() {
+  return Boolean(document.querySelector(".employee-picker-menu:not(.hidden)"));
+}
+
 function ec2StateLabel(state) {
   return ({running: "VM включена", pending: "VM запускается", stopping: "VM выключается", stopped: "VM выключена", error: "Ошибка AWS", not_configured: "Управление не настроено"})[state] || state || "Состояние неизвестно";
 }
@@ -1024,11 +1028,13 @@ function render(data) {
 }
 
 async function refresh(force = false) {
-  if (!force && agendaEditingActive()) return;
+  if (!force && (agendaEditingActive() || employeePickerOpen())) return;
   try {
     const resp = await fetch("/api/v1/nodes/status", { cache: "no-store" });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    render(await resp.json());
+    const data = await resp.json();
+    if (!force && employeePickerOpen()) return;
+    render(data);
   } catch (e) {
     updatedEl.textContent = `Ошибка обновления: ${e.message}`;
   }
