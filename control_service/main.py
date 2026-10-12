@@ -32,6 +32,8 @@ from .audio_monitor import AudioMonitor
 from .kuma_monitor import KumaMonitor
 from .agenda_ai import DashboardAgendaService
 from .dispatch_guard import active_assignment, meeting_dispatch_lock
+from .cohost_client import CohostServiceClient, CohostServiceError
+from .employee_directory import EmployeeDirectoryClient, EmployeeDirectoryError
 
 
 load_env()
@@ -60,6 +62,8 @@ aws_ec2_controller = AwsEc2Controller.from_env()
 dashboard_agenda_service = DashboardAgendaService()
 audio_monitor = AudioMonitor(load_nodes)
 kuma_monitor = KumaMonitor(PROJECT_ROOT, audio_monitor, session_service, aws_ec2_controller, load_nodes)
+cohost_service = CohostServiceClient()
+employee_directory = EmployeeDirectoryClient()
 
 
 class MeetingRequest(BaseModel):
@@ -72,6 +76,12 @@ class MeetingRequest(BaseModel):
     organizer: Optional[str] = None
     expected_participants: Optional[str] = None
     agenda: Optional[str] = None
+
+    def organizer_email(self) -> str:
+        email = str(self.organizer or "").strip().lower()
+        if email and "@" not in email:
+            raise ValueError("organizer must be an email address")
+        return email
 
 
 class AgendaActivationRequest(BaseModel):
@@ -491,6 +501,17 @@ async def auth_me(session: AuthSession | None = Depends(require_control_access))
     }
 
 
+@app.get("/api/v1/employees")
+async def active_employees(
+    force: bool = Query(default=False),
+    _auth=Depends(require_control_access),
+):
+    try:
+        return await asyncio.to_thread(employee_directory.list_active, force)
+    except EmployeeDirectoryError as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
+
+
 @app.get("/api/v1/nodes/status")
 async def list_node_status(_auth=Depends(require_control_access)):
     configured_nodes = nodes()
@@ -751,6 +772,10 @@ async def select_first_idle_node(statuses: list[dict] | None = None) -> tuple[Bo
 async def create_meeting_on_any_node(req: MeetingRequest, _auth=Depends(require_control_access)):
     if not req.meeting_url.strip():
         raise HTTPException(status_code=400, detail="meeting_url is required")
+    try:
+        organizer_email = req.organizer_email()
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     async with meeting_dispatch_lock:
         configured_nodes = nodes()
         statuses = await asyncio.gather(*(node_status(node) for node in configured_nodes))
@@ -759,14 +784,26 @@ async def create_meeting_on_any_node(req: MeetingRequest, _auth=Depends(require_
             raise HTTPException(status_code=409, detail={"message": "Meeting is already assigned", **existing})
         node, _status = await select_first_idle_node(statuses)
         payload = req.dict()
+        payload["organizer"] = organizer_email or None
         try:
             result = await asyncio.to_thread(BotNodeClient(node).create_meeting_any_bot, payload)
         except BotNodeError as error:
             raise HTTPException(status_code=502, detail=str(error)) from error
+    if organizer_email:
+        try:
+            cohost = await asyncio.to_thread(
+                cohost_service.ensure, req.meeting_url, organizer_email
+            )
+        except CohostServiceError as error:
+            cohost = {"status": "failed", "reason": str(error)}
+            print(f"[ControlService] Cohost ensure failed for {req.meeting_url}: {error}")
+    else:
+        cohost = {"status": "skipped", "reason": "organizer_not_selected"}
     return {
         **result,
         "node_id": node.id,
         "node_name": node.name,
+        "cohost": cohost,
     }
 
 
@@ -779,6 +816,10 @@ async def create_meeting_on_specific_bot(
 ):
     if not req.meeting_url.strip():
         raise HTTPException(status_code=400, detail="meeting_url is required")
+    try:
+        organizer_email = req.organizer_email()
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     async with meeting_dispatch_lock:
         configured_nodes = nodes()
         statuses = await asyncio.gather(*(node_status(item) for item in configured_nodes))
@@ -787,14 +828,26 @@ async def create_meeting_on_specific_bot(
             raise HTTPException(status_code=409, detail={"message": "Meeting is already assigned", **existing})
         node = find_node(node_id)
         payload = req.dict()
+        payload["organizer"] = organizer_email or None
         try:
             result = await asyncio.to_thread(BotNodeClient(node).create_meeting_for_bot, bot_id, payload)
         except BotNodeError as error:
             raise HTTPException(status_code=502, detail=str(error)) from error
+    if organizer_email:
+        try:
+            cohost = await asyncio.to_thread(
+                cohost_service.ensure, req.meeting_url, organizer_email
+            )
+        except CohostServiceError as error:
+            cohost = {"status": "failed", "reason": str(error)}
+            print(f"[ControlService] Cohost ensure failed for {req.meeting_url}: {error}")
+    else:
+        cohost = {"status": "skipped", "reason": "organizer_not_selected"}
     return {
         **result,
         "node_id": node.id,
         "node_name": node.name,
+        "cohost": cohost,
     }
 
 

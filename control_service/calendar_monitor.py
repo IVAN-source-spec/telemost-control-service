@@ -17,6 +17,7 @@ from .calendar_state import (
     write_json_file,
 )
 from .config import PROJECT_ROOT, load_nodes
+from .cohost_client import CohostServiceClient, CohostServiceError
 from .dispatch_guard import active_assignment, meeting_dispatch_lock, normalize_meeting_url
 
 
@@ -77,6 +78,11 @@ class CalendarMonitor:
         self._tick_lock = asyncio.Lock()
         self._control_update_callbacks = []
         self._calendar_agendas = CalendarAgendaService()
+        self._cohost_client = CohostServiceClient()
+        self._cohost_interval = int(os.getenv("CALENDAR_COHOST_CHECK_INTERVAL_SECONDS", "60"))
+        self._cohost_lookahead = timedelta(
+            minutes=int(os.getenv("CALENDAR_COHOST_LOOKAHEAD_MINUTES", "60"))
+        )
 
     def add_control_update_callback(self, callback) -> None:
         self._control_update_callbacks.append(callback)
@@ -137,6 +143,9 @@ class CalendarMonitor:
             "dispatch_keep_hours": self.dispatch_keep_hours,
             "dynamic_agenda_enabled": self.dynamic_agenda_enabled,
             "dynamic_agenda_poll_seconds": self.dynamic_agenda_interval,
+            "cohost_enabled": self._cohost_client.enabled,
+            "cohost_check_interval_seconds": self._cohost_interval,
+            "cohost_lookahead_minutes": int(self._cohost_lookahead.total_seconds() // 60),
             "upcoming_file": str(self.upcoming_file),
             "dispatch_state_file": str(self.dispatch_state_file),
             "upcoming_generated_at": upcoming.get("generated_at"),
@@ -250,6 +259,7 @@ class CalendarMonitor:
         )
         dispatch_state = prune_dispatch_state(self.read_dispatch_state(), self.dispatch_keep_hours)
         dispatched = dispatch_state.setdefault("dispatched", {})
+        cohosts = dispatch_state.setdefault("cohosts", {})
 
         event_rows = []
         for event in relevant_events:
@@ -271,6 +281,8 @@ class CalendarMonitor:
             self.notify_control_schedule_changed()
 
         changed = False
+        if await self.update_cohosts(relevant_events, cohosts, now):
+            changed = True
         for event in relevant_events:
             if not event.meeting_url:
                 continue
@@ -348,6 +360,49 @@ class CalendarMonitor:
                     "events": refreshed_rows,
                 }
             )
+
+    async def update_cohosts(self, events: list[CalendarEvent], records: dict, now: datetime) -> bool:
+        if not self._cohost_client.enabled:
+            return False
+        changed = False
+        for event in events:
+            if not event.meeting_url or not event.organizer_attendee:
+                continue
+            organizer_email = str(event.organizer_attendee.email or "").strip().lower()
+            if not organizer_email:
+                continue
+            starts_at = event.starts_at.astimezone(timezone.utc)
+            ends_at = event.ends_at.astimezone(timezone.utc) if event.ends_at else starts_at + timedelta(hours=1)
+            if ends_at < now or starts_at > now + self._cohost_lookahead:
+                continue
+            event_id = self.external_event_id(event)
+            record = records.get(event_id) or {}
+            last_checked = parse_iso_datetime(record.get("last_checked_at"))
+            if last_checked is not None and (
+                now - last_checked.astimezone(timezone.utc)
+            ).total_seconds() < self._cohost_interval:
+                continue
+            try:
+                result = await asyncio.to_thread(
+                    self._cohost_client.ensure, event.meeting_url, organizer_email
+                )
+                error = None
+            except CohostServiceError as exc:
+                result = {"status": "failed", "reason": str(exc)}
+                error = str(exc)
+                print(f"[CalendarMonitor] Cohost ensure failed for {event_id}: {exc}")
+            records[event_id] = {
+                "event_id": event_id,
+                "meeting_url": event.meeting_url,
+                "organizer_email": organizer_email,
+                "last_checked_at": datetime.now(timezone.utc).isoformat(),
+                "status": result.get("status"),
+                "reason": result.get("reason"),
+                "changed": result.get("changed", False),
+                "error": error,
+            }
+            changed = True
+        return changed
 
     async def update_dynamic_agendas(self, events: list[CalendarEvent], dispatched: dict, now: datetime) -> bool:
         if not self.dynamic_agenda_enabled:
@@ -725,6 +780,18 @@ class CalendarMonitor:
             "expected_participants": format_expected_participants(event.attendees) or None,
         }
 
+        cohost_result = None
+        if event.organizer_attendee and event.organizer_attendee.email:
+            try:
+                cohost_result = await asyncio.to_thread(
+                    self._cohost_client.ensure,
+                    event.meeting_url,
+                    event.organizer_attendee.email,
+                )
+            except CohostServiceError as error:
+                cohost_result = {"status": "failed", "reason": str(error)}
+                print(f"[CalendarMonitor] Pre-dispatch cohost ensure failed: {error}")
+
         async with meeting_dispatch_lock:
             nodes = load_nodes()
             statuses = await asyncio.gather(*(asyncio.to_thread(BotNodeClient(node).status) for node in nodes))
@@ -739,7 +806,7 @@ class CalendarMonitor:
                 try:
                     result = await asyncio.to_thread(BotNodeClient(node).create_meeting_any_bot, payload)
                     print(f"[CalendarMonitor] Dispatched {event.uid} to {node.id}: {result}")
-                    return {"node_id": node.id, **result}
+                    return {"node_id": node.id, "cohost": cohost_result, **result}
                 except BotNodeError as error:
                     print(f"[CalendarMonitor] Dispatch to {node.id} failed: {error}")
 

@@ -44,6 +44,19 @@ DASHBOARD_HTML = """
     button:disabled { background: #aab4c0; cursor: not-allowed; }
     .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
     .quick-extra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .organizer-picker-row { margin-top: 10px; }
+    .employee-picker { position: relative; }
+    .employee-picker-trigger { width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; color: #20242d; background: #fff; border: 1px solid #cbd3dc; font-weight: 400; }
+    .employee-picker-trigger:hover { border-color: #8aa8cc; }
+    .employee-picker-placeholder { color: #687080; }
+    .employee-picker-menu { position: absolute; z-index: 80; top: calc(100% + 5px); left: 0; right: 0; padding: 8px; border: 1px solid #cbd3dc; border-radius: 9px; background: #fff; box-shadow: 0 12px 28px rgba(20,31,45,.18); }
+    .employee-picker-search { margin-bottom: 7px; }
+    .employee-picker-options { max-height: 300px; overflow-y: auto; display: grid; gap: 3px; }
+    .employee-option { width: 100%; min-height: 50px; padding: 7px 9px; text-align: left; background: #fff; color: #20242d; border: 1px solid transparent; font-weight: 400; }
+    .employee-option:hover, .employee-option.selected { background: #edf5ff; border-color: #b9d5f6; }
+    .employee-option strong { display: block; font-size: 14px; }
+    .employee-option small { display: block; margin-top: 2px; color: #687080; font-size: 12px; }
+    .employee-option.clear { min-height: 40px; color: #687080; }
     .calendar-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
     .metric { padding: 14px; }
     .metric strong { display: block; font-size: 28px; margin-top: 4px; }
@@ -191,6 +204,16 @@ DASHBOARD_HTML = """
             <input name="meeting_url" type="url" placeholder="Ссылка на встречу" required>
             <input name="title" type="text" placeholder="Название, необязательно">
             <button type="submit">Запустить</button>
+          </div>
+          <div class="organizer-picker-row">
+            <div class="employee-picker" data-employee-picker>
+              <input type="hidden" name="organizer" value="">
+              <button type="button" class="employee-picker-trigger"><span class="employee-picker-label employee-picker-placeholder">Организатор, необязательно</span><span>⌄</span></button>
+              <div class="employee-picker-menu hidden">
+                <input type="search" class="employee-picker-search" placeholder="Поиск по ФИО или почте">
+                <div class="employee-picker-options"><div class="muted">Нажмите, чтобы загрузить сотрудников</div></div>
+              </div>
+            </div>
           </div>
           <div class="quick-extra-grid">
             <textarea name="agenda" placeholder="Повестка, необязательно. Например: ###Повестка: #1. Вопрос - 10:00 #2. Следующий вопрос###"></textarea>
@@ -581,6 +604,101 @@ function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+let employeeDirectory = [];
+let employeeDirectoryPromise = null;
+
+async function loadEmployeeDirectory() {
+  if (employeeDirectory.length) return employeeDirectory;
+  if (!employeeDirectoryPromise) {
+    employeeDirectoryPromise = fetch("/api/v1/employees", {cache: "no-store"})
+      .then(async response => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(typeof payload.detail === "string" ? payload.detail : `HTTP ${response.status}`);
+        employeeDirectory = Array.isArray(payload.users) ? payload.users : [];
+        return employeeDirectory;
+      })
+      .finally(() => { employeeDirectoryPromise = null; });
+  }
+  return employeeDirectoryPromise;
+}
+
+function employeePickerHtml() {
+  return `<div class="employee-picker" data-employee-picker>
+    <input type="hidden" name="organizer" value="">
+    <button type="button" class="employee-picker-trigger"><span class="employee-picker-label employee-picker-placeholder">Организатор, необязательно</span><span>⌄</span></button>
+    <div class="employee-picker-menu hidden">
+      <input type="search" class="employee-picker-search" placeholder="Поиск по ФИО или почте">
+      <div class="employee-picker-options"><div class="muted">Нажмите, чтобы загрузить сотрудников</div></div>
+    </div>
+  </div>`;
+}
+
+function setEmployeePickerValue(picker, email, fullName = "") {
+  const hidden = picker.querySelector('input[name="organizer"]');
+  const label = picker.querySelector(".employee-picker-label");
+  const normalized = String(email || "").trim().toLowerCase();
+  hidden.value = normalized;
+  if (normalized) {
+    const employee = employeeDirectory.find(item => String(item.email || "").toLowerCase() === normalized);
+    label.textContent = fullName || employee?.full_name || normalized;
+    label.classList.remove("employee-picker-placeholder");
+  } else {
+    label.textContent = "Организатор, необязательно";
+    label.classList.add("employee-picker-placeholder");
+  }
+  hidden.dispatchEvent(new Event("input", {bubbles: true}));
+}
+
+function renderEmployeeOptions(picker, query = "") {
+  const options = picker.querySelector(".employee-picker-options");
+  const selected = picker.querySelector('input[name="organizer"]').value.toLowerCase();
+  const needle = String(query || "").trim().toLowerCase();
+  const users = employeeDirectory.filter(user => !needle || `${user.full_name || ""} ${user.email || ""} ${user.position || ""}`.toLowerCase().includes(needle));
+  options.innerHTML = `<button type="button" class="employee-option clear" data-employee-email="">Без выбранного организатора</button>`
+    + users.slice(0, 250).map(user => `<button type="button" class="employee-option ${String(user.email).toLowerCase() === selected ? "selected" : ""}" data-employee-email="${esc(user.email)}" data-employee-name="${esc(user.full_name)}"><strong>${esc(user.full_name || user.email)}</strong><small>${esc(user.email)}</small></button>`).join("")
+    + (!users.length ? '<div class="muted" style="padding:8px">Сотрудники не найдены</div>' : "");
+  options.querySelectorAll("[data-employee-email]").forEach(option => option.addEventListener("click", () => {
+    setEmployeePickerValue(picker, option.dataset.employeeEmail, option.dataset.employeeName);
+    picker.querySelector(".employee-picker-menu").classList.add("hidden");
+  }));
+}
+
+function setupEmployeePickers(root = document) {
+  root.querySelectorAll("[data-employee-picker]").forEach(picker => {
+    if (picker.dataset.initialized) return;
+    picker.dataset.initialized = "1";
+    const trigger = picker.querySelector(".employee-picker-trigger");
+    const menu = picker.querySelector(".employee-picker-menu");
+    const search = picker.querySelector(".employee-picker-search");
+    setEmployeePickerValue(picker, picker.querySelector('input[name="organizer"]').value);
+    trigger.addEventListener("click", async () => {
+      const shouldOpen = menu.classList.contains("hidden");
+      document.querySelectorAll(".employee-picker-menu").forEach(item => item.classList.add("hidden"));
+      if (!shouldOpen) return;
+      menu.classList.remove("hidden");
+      search.focus();
+      picker.querySelector(".employee-picker-options").innerHTML = '<div class="muted" style="padding:8px">Загрузка сотрудников…</div>';
+      try {
+        await loadEmployeeDirectory();
+        renderEmployeeOptions(picker, search.value);
+      } catch (error) {
+        picker.querySelector(".employee-picker-options").innerHTML = `<div class="error" style="padding:8px">Справочник временно недоступен. Встречу можно отправить без организатора.<br>${esc(error.message)}</div>`;
+      }
+    });
+    search.addEventListener("input", () => renderEmployeeOptions(picker, search.value));
+  });
+}
+
+document.addEventListener("click", event => {
+  if (event.target.closest("[data-employee-picker]")) return;
+  document.querySelectorAll(".employee-picker-menu").forEach(menu => menu.classList.add("hidden"));
+});
+
+function resetEmployeePicker(form) {
+  const picker = form.querySelector("[data-employee-picker]");
+  if (picker) setEmployeePickerValue(picker, "");
+}
+
 const agendaSubmissions = new Map();
 function agendaSubmissionKey(nodeId, botId, sessionId) {
   return JSON.stringify([nodeId, botId, sessionId]);
@@ -877,6 +995,7 @@ function render(data) {
                 <div class="row" style="grid-template-columns:1fr; margin-top:10px;">
                   <input name="meeting_url" type="url" placeholder="Ссылка на встречу" required>
                   <input name="title" type="text" placeholder="Название, необязательно">
+                  ${employeePickerHtml()}
                   <textarea name="agenda" placeholder="Повестка, необязательно"></textarea>
                   <textarea name="expected_participants" placeholder="Участники, необязательно"></textarea>
                   <button type="submit">Запустить на этом боте</button>
@@ -897,6 +1016,7 @@ function render(data) {
     button.addEventListener("click", () => leaveMeeting(button));
   }
   restoreBotFormDrafts(focusedBotField);
+  setupEmployeePickers(nodesEl);
   for (const form of document.querySelectorAll(".agenda-form")) {
     form.addEventListener("submit", submitAgenda);
   }
@@ -946,8 +1066,16 @@ function payloadFrom(form) {
     title: String(data.get("title") || "").trim() || null,
     agenda: String(data.get("agenda") || "").trim() || null,
     expected_participants: String(data.get("expected_participants") || "").trim() || null,
+    organizer: String(data.get("organizer") || "").trim().toLowerCase() || null,
     source: "control_service"
   };
+}
+
+function cohostResultText(cohost) {
+  if (!cohost || cohost.status === "skipped") return "Организатор не выбран — бот останется без прав соорганизатора.";
+  if (cohost.status === "completed") return cohost.reason === "already_cohost" ? "Бот уже является соорганизатором." : "Бот назначен соорганизатором.";
+  if (cohost.status === "failed") return `Не удалось назначить бота соорганизатором: ${cohost.reason || "встреча не найдена у выбранного организатора"}.`;
+  return `Назначение соорганизатора: ${cohost.status || "состояние неизвестно"}.`;
 }
 
 function showPage(pageId) {
@@ -1616,8 +1744,9 @@ async function submitQuick(event) {
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) throw new Error(data.detail || `HTTP ${resp.status}`);
-    quickMessage.textContent = `Задача ${data.task_id} отправлена на ${data.node_id}:${data.bot_id}`;
+    quickMessage.textContent = `Задача ${data.task_id} отправлена на ${data.node_id}:${data.bot_id}. ${cohostResultText(data.cohost)}`;
     quickForm.reset();
+    resetEmployeePicker(quickForm);
     await refresh();
   } catch (e) {
     quickMessage.className = "message error";
@@ -1692,9 +1821,10 @@ async function submitSpecific(event) {
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) throw new Error(data.detail || `HTTP ${resp.status}`);
-    message.textContent = `Создана задача ${data.task_id}`;
+    message.textContent = `Создана задача ${data.task_id}. ${cohostResultText(data.cohost)}`;
     botFormDrafts.delete(botFormDraftKey(form));
     form.reset();
+    resetEmployeePicker(form);
     await refresh();
   } catch (e) {
     message.className = "message error";
@@ -1705,6 +1835,7 @@ async function submitSpecific(event) {
 }
 
 quickForm.addEventListener("submit", submitQuick);
+setupEmployeePickers();
 calendarButton.addEventListener("click", loadCalendarPreview);
 calendarControlRefresh.addEventListener("click", () => loadCalendarControl(true));
 for (const button of navButtons) {
